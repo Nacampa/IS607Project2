@@ -1,0 +1,123 @@
+\documentclass{article}
+
+\begin{document}
+
+# IS607 - Project 
+# Neil Acampa
+
+# Project 2: Profiling a Data Set
+# 1 - Choice of Data Set: Selected the adult.data set from 
+# URL: archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data
+
+#2 - Analyis requirements:
+#    Include an analysis of each variable. Summarize and identify questionable variables
+
+#   I selected the folowing attributes from the data table (df)
+#   "Age","Level of Education","Marital-Status","Occupation","Race","Gender","Country","Income"
+
+#   I created a new data frame called dfproject. Various types output will be created from dfproject
+     
+#   dfoutput  = dfproject ordered by age, level of educatioion, race and gender
+#   output1   = group dfoutput by age, level of education and income
+#   output2   = group dfoutput by age, level of education, gender and income
+#   output3   = group dfoutput by age, level of education, race and income
+
+#    (add charts and posible regression)
+#    Needs more work
+
+install.packages("XML")
+require(XML)
+
+library(plyr)
+require(plyr)
+install.packages("devtools")
+library(dplyr)
+
+install.packages("ggplot2")
+library(ggplot2)
+
+require(stringr)
+
+
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data" 
+df <- read.table(url, header = FALSE, sep = ",", stringsAsFactors = FALSE)
+col.names <- c("Age","Level of Education","Marital-Status","Occupation","Race","Gender","Country","Income")
+
+age           <- df[,1]
+education     <- df[,4]
+maritalstatus <- df[,6]
+occupation    <- df[,7]
+race          <- df[,9]
+gender        <- df[,10]
+country       <- df[,14]
+income        <- df[,15]
+
+dfproject     <- data.frame(age, education, maritalstatus, occupation, race, gender, country, income, stringsAsFactors = FALSE)
+n             <- nrow(dfproject)
+
+(maxage        <- max(dfproject$age))
+(minage        <- min(dfproject$age))
+(meanage       <- mean(dfproject$age))
+
+std           <- sd(dfproject$age)
+zstathigh     <- meanage + ((1.96)*(std/sqrt(n)))
+zstatlow      <- meanage - ((1.96)*(std/sqrt(n)))
+
+result        <- group_by(dfproject, education, income)
+(output1      <- summarise(result, count = n()))
+
+result        <- group_by(dfproject, race, income)
+(output3      <- summarise(result, count = n()))
+
+result        <- group_by(dfproject, occupation, income)
+(output4      <- summarise(result, count = n()))
+
+result        <- group_by(dfproject, gender, income)
+(output5      <- summarise(result, count = n()))
+
+
+result        <- group_by(dfproject, education, race)
+(output6      <- summarise(result, count = n()))
+
+result        <- group_by(dfproject, education, gender)
+(output7      <- summarise(result, count = n()))
+
+
+result        <- group_by(dfproject, age, income)
+(output7      <- summarise(result, count = n()))
+
+(result        <- aggregate(income ~ (education + gender), dfproject, length))
+
+
+
+
+xratingtext    = paste("Ages from ",minage,"to", maxage)
+
+ggplot(dfproject, aes(y = dfproject$income, x = dfproject$age)) + geom_line() + xlab(xratingtext) + ylab("Income") + ggtitle("Age and Income")
+ggplot(dfproject, aes(y = dfproject$income, x = dfproject$gender)) + geom_line() + xlab("Gender") + ylab("Income") + ggtitle("Gender and Income")
+
+ggplot(dfproject, aes(y = dfproject$income, x = dfproject$race)) + geom_line() + xlab("Race") + ylab("Income") + ggtitle("Race and Income")
+
+
+ggplot(dfproject, aes(y = dfproject$education, x = dfproject$race)) + geom_line() + xlab("Race") + ylab("Education") + ggtitle("Race and Education")
+ggplot(dfproject, aes(y = dfproject$education, x = dfproject$gender)) + geom_line() + xlab("Gender") + ylab("Education") + ggtitle("Gender and Education")
+
+ggplot(dfproject, aes(y = dfproject$education, x = dfproject$age)) + geom_line() + xlab(xratingtext) + ylab("Education") + ggtitle("Age and Education")
+
+# Since min and max age affect the relationship to level of education, occupations and income
+# The summarise is first run on all data and then on data from 2 standard devs below the mean age and up
+
+dfprojectage  <- dfproject[dfproject$age >= zstatlow,]
+
+result        <- group_by(dfprojectage, age, income)
+(output8      <- summarise(result, count = n()))
+
+result        <- group_by(dfprojectage, education, income)
+(output9      <- summarise(result, count = n()))
+
+result        <- group_by(dfprojectage, gender, income)
+(output10      <- summarise(result, count = n()))
+
+result        <- group_by(dfprojectage, gender, education)
+(output11      <- summarise(result, count = n()))
+\end{document}
